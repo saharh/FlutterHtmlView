@@ -6,7 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 class HtmlText extends StatelessWidget {
   final String data;
   final TextOverflow overflow;
-  final Widget style;
+  TextStyle style;
   final int maxLines;
   final Function onLaunchFail;
 
@@ -57,11 +57,11 @@ class HtmlText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ctx = context;
-    HtmlParser parser = new HtmlParser(context);
+    style = style != null ? DefaultTextStyle.of(context).style.merge(style) : DefaultTextStyle.of(context).style;
+    HtmlParser parser = new HtmlParser(context, style);
     List nodes = parser.parse(this.data);
 
     TextSpan span = this._stackToTextSpan(nodes, context);
-
 
     RichText contents;
     if (overflow != null && maxLines != null) {
@@ -78,26 +78,20 @@ class HtmlText extends StatelessWidget {
       );
     }
 
-    return new Container(
-        padding:
-            const EdgeInsets.only(top: 2.0, left: 8.0, right: 8.0, bottom: 2.0),
-        child: contents);
+    return new Container(padding: const EdgeInsets.only(top: 2.0, left: 8.0, right: 8.0, bottom: 2.0), child: contents);
   }
 
   TextSpan _stackToTextSpan(List nodes, BuildContext context) {
     List<TextSpan> children = <TextSpan>[];
 
     for (int i = 0; i < nodes.length; i++) {
-      children.add(_textSpan(nodes[i]));
+      children.add(_textSpan(nodes[i], context));
     }
 
-    return new TextSpan(
-        text: '',
-        style: DefaultTextStyle.of(context).style,
-        children: children);
+    return new TextSpan(text: '', style: style, children: children);
   }
 
-  TextSpan _textSpan(Map node) {
+  TextSpan _textSpan(Map node, BuildContext context) {
     TextSpan span;
     String s = node['text'];
 
@@ -107,13 +101,14 @@ class HtmlText extends StatelessWidget {
     s = s.replaceAll('&lt;', '<');
     s = s.replaceAll('&gt;', '>');
 
+    TextStyle nodeStyle = node['style'];
+//    nodeStyle = nodeStyle != null ? style.merge(nodeStyle) : style;
     if (node['tag'] == 'a') {
-      span = new TextSpan(
-          text: s, style: node['style'], recognizer: recognizer(node['href']));
+      span = new TextSpan(text: s, style: nodeStyle, recognizer: recognizer(node['href']));
     } else {
       span = new TextSpan(
         text: s,
-        style: node['style'],
+        style: nodeStyle,
       );
     }
 
@@ -128,25 +123,11 @@ class HtmlParser {
   RegExp _attr;
   RegExp _style;
   RegExp _color;
+  TextStyle _defaultStyle;
 
   final BuildContext context;
 
-  final List _emptyTags = const [
-    'area',
-    'base',
-    'basefont',
-    'br',
-    'col',
-    'frame',
-    'hr',
-    'img',
-    'input',
-    'isindex',
-    'link',
-    'meta',
-    'param',
-    'embed'
-  ];
+  final List _emptyTags = const ['area', 'base', 'basefont', 'br', 'col', 'frame', 'hr', 'img', 'input', 'isindex', 'link', 'meta', 'param', 'embed'];
   final List _blockTags = const [
     'address',
     'applet',
@@ -227,19 +208,7 @@ class HtmlParser {
     'u',
     'var'
   ];
-  final List _closeSelfTags = const [
-    'colgroup',
-    'dd',
-    'dt',
-    'li',
-    'options',
-    'p',
-    'td',
-    'tfoot',
-    'th',
-    'thead',
-    'tr'
-  ];
+  final List _closeSelfTags = const ['colgroup', 'dd', 'dt', 'li', 'options', 'p', 'td', 'tfoot', 'th', 'thead', 'tr'];
   final List _fillAttrs = const [
     'checked',
     'compact',
@@ -262,14 +231,10 @@ class HtmlParser {
 
   Map<String, dynamic> _tag;
 
-  HtmlParser(this.context) {
-    this._startTag = new RegExp(
-        r'^<([-A-Za-z0-9_]+)((?:\s+[-\w]+(?:\s*=\s*(?:(?:"[^"]*")' +
-            "|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>");
+  HtmlParser(this.context, this._defaultStyle) {
+    this._startTag = new RegExp(r'^<([-A-Za-z0-9_]+)((?:\s+[-\w]+(?:\s*=\s*(?:(?:"[^"]*")' + "|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>");
     this._endTag = new RegExp("^<\/([-A-Za-z0-9_]+)[^>]*>");
-    this._attr = new RegExp(
-        r'([-A-Za-z0-9_]+)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")' +
-            r"|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?");
+    this._attr = new RegExp(r'([-A-Za-z0-9_]+)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")' + r"|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?");
     this._style = new RegExp(r'([a-zA-Z\-]+)\s*:\s*([^;]*)');
     this._color = new RegExp(r'^#([a-fA-F0-9]{6})$');
   }
@@ -284,8 +249,7 @@ class HtmlParser {
       chars = true;
 
       // Make sure we're not in a script or style element
-      if (this._getStackLastItem() == null ||
-          !this._specialTags.contains(this._getStackLastItem())) {
+      if (this._getStackLastItem() == null || !this._specialTags.contains(this._getStackLastItem())) {
         // Comment
         if (html.indexOf('<!--') == 0) {
           index = html.indexOf('-->');
@@ -332,13 +296,10 @@ class HtmlParser {
           this._appendNode(text);
         }
       } else {
-        RegExp re =
-            new RegExp(r'(.*)<\/' + this._getStackLastItem() + r'[^>]*>');
+        RegExp re = new RegExp(r'(.*)<\/' + this._getStackLastItem() + r'[^>]*>');
 
         html = html.replaceAllMapped(re, (Match match) {
-          String text = match[0]
-            ..replaceAll(new RegExp('<!--(.*?)-->'), '\$1')
-            ..replaceAll(new RegExp('<!\[CDATA\[(.*?)]]>'), '\$1');
+          String text = match[0]..replaceAll(new RegExp('<!--(.*?)-->'), '\$1')..replaceAll(new RegExp('<!\[CDATA\[(.*?)]]>'), '\$1');
 
           this._appendNode(text);
 
@@ -371,14 +332,12 @@ class HtmlParser {
     tagName = tagName.toLowerCase();
 
     if (this._blockTags.contains(tagName)) {
-      while (this._getStackLastItem() != null &&
-          this._inlineTags.contains(this._getStackLastItem())) {
+      while (this._getStackLastItem() != null && this._inlineTags.contains(this._getStackLastItem())) {
         this._parseEndTag(this._getStackLastItem());
       }
     }
 
-    if (this._closeSelfTags.contains(tagName) &&
-        this._getStackLastItem() == tagName) {
+    if (this._closeSelfTags.contains(tagName) && this._getStackLastItem() == tagName) {
       this._parseEndTag(tagName);
     }
 
@@ -438,13 +397,13 @@ class HtmlParser {
     }
   }
 
-  TextStyle _parseStyle(String tag, Map attrs) {
+  TextStyle _parseStyle(String tag, Map attrs, TextStyle defaultTextStyle) {
     Iterable<Match> matches;
     String style = attrs['style'];
     String param;
     String value;
 
-    TextStyle defaultTextStyle = DefaultTextStyle.of(context).style;
+    defaultTextStyle ??= DefaultTextStyle.of(context).style;
 
     double fontSize = defaultTextStyle.fontSize;
     Color color = defaultTextStyle.color;
@@ -508,26 +467,22 @@ class HtmlParser {
             break;
 
           case 'font-weight':
-            fontWeight =
-                (value == 'bold') ? FontWeight.bold : FontWeight.normal;
+            fontWeight = (value == 'bold') ? FontWeight.bold : FontWeight.normal;
 
             break;
 
           case 'font-style':
-            fontStyle =
-                (value == 'italic') ? FontStyle.italic : FontStyle.normal;
+            fontStyle = (value == 'italic') ? FontStyle.italic : FontStyle.normal;
 
             break;
 
           case 'font-size':
-             fontSize = double.parse(value);
-             
+            fontSize = double.parse(value);
+
             break;
 
           case 'text-decoration':
-            textDecoration = (value == 'underline')
-                ? TextDecoration.underline
-                : TextDecoration.none;
+            textDecoration = (value == 'underline') ? TextDecoration.underline : TextDecoration.none;
 
             break;
         }
@@ -537,12 +492,7 @@ class HtmlParser {
     TextStyle textStyle;
 
     if (fontSize != 0.0) {
-      textStyle = new TextStyle(
-          color: color,
-          fontWeight: fontWeight,
-          fontStyle: fontStyle,
-          decoration: textDecoration,
-          fontSize: fontSize);
+      textStyle = new TextStyle(color: color, fontWeight: fontWeight, fontStyle: fontStyle, decoration: textDecoration, fontSize: fontSize);
     } else {
       textStyle = new TextStyle(
         color: color,
@@ -565,9 +515,8 @@ class HtmlParser {
     }
 
     this._tag['text'] = text;
-    this._tag['style'] = this._parseStyle(this._tag['tag'], this._tag['attrs']);
-    this._tag['href'] =
-        (this._tag['attrs']['href'] != null) ? this._tag['attrs']['href'] : '';
+    this._tag['style'] = this._parseStyle(this._tag['tag'], this._tag['attrs'], this._defaultStyle);
+    this._tag['href'] = (this._tag['attrs']['href'] != null) ? this._tag['attrs']['href'] : '';
 
     this._tag.remove('attrs');
 
