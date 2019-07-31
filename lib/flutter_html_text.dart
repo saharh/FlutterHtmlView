@@ -1,7 +1,5 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_custom_tabs/flutter_custom_tabs.dart' as cTab;
-import 'package:url_launcher/url_launcher.dart';
 
 class HtmlText extends StatelessWidget {
   final String data;
@@ -9,10 +7,17 @@ class HtmlText extends StatelessWidget {
   TextStyle style;
   final int maxLines;
   final Function onLaunchFail;
+  final EdgeInsetsGeometry padding;
 
   BuildContext ctx;
 
-  HtmlText({this.data, this.style, this.onLaunchFail, this.overflow, this.maxLines});
+  HtmlText(
+      {this.data,
+      this.style,
+      this.onLaunchFail,
+      this.overflow,
+      this.maxLines,
+      this.padding = const EdgeInsets.only(top: 2.0, left: 8.0, right: 8.0, bottom: 2.0)});
 
   void _launchURL(String url) async {
     try {
@@ -78,7 +83,7 @@ class HtmlText extends StatelessWidget {
       );
     }
 
-    return new Container(padding: const EdgeInsets.only(top: 2.0, left: 8.0, right: 8.0, bottom: 2.0), child: contents);
+    return new Container(padding: this.padding, child: contents);
   }
 
   TextSpan _stackToTextSpan(List nodes, BuildContext context) {
