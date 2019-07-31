@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-
-import 'package:html2md/html2md.dart' as html2md;
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart' as cTab;
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:html2md/html2md.dart' as html2md;
 import 'package:url_launcher/url_launcher.dart';
 
 class HtmlView extends StatelessWidget {
@@ -32,11 +31,11 @@ class HtmlView extends StatelessWidget {
         },
         padding: padding,
       );
-    }
-    else {
+    } else {
       return Container(
         padding: padding,
-        child: MarkdownBody( // Doesn't use a list view, hence no scrolling. 
+        child: MarkdownBody(
+          // Doesn't use a list view, hence no scrolling.
           data: _htmlMd(data, stylingOptions),
           onTapLink: (url) {
             if (url.startsWith("http://") || url.startsWith("https://")) {
@@ -50,7 +49,6 @@ class HtmlView extends StatelessWidget {
     }
   }
 
-
   String _htmlMd(String html, Map<String, String> stylingOptions) {
     if (stylingOptions != null) {
       return html2md.convert(html, styleOptions: stylingOptions);
@@ -58,7 +56,6 @@ class HtmlView extends StatelessWidget {
       return html2md.convert(html);
     }
   }
-
 
   void _launchURL(String url) async {
     try {
@@ -89,5 +86,4 @@ class HtmlView extends StatelessWidget {
       }
     }
   }
-
 }
