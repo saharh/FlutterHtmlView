@@ -52,7 +52,7 @@ class _MyAppState extends State<MyApp> {
           // child: new HtmlView(
           child: new HtmlText(
             data: html,
-           style: TextStyle(fontSize: 12), // TODO
+           style: TextStyle(fontSize: 12),
             // stylingOptions: null,
             // styleSheet: MarkdownStyleSheet(),
           ),
