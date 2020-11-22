@@ -49,12 +49,12 @@ class _MyAppState extends State<MyApp> {
           title: new Text('Plugin example app'),
         ),
         body: new Container(
-          child: new HtmlView(
-//          child: new HtmlText(
+          // child: new HtmlView(
+          child: new HtmlText(
             data: html,
-//            style: TextStyle(fontSize: 12), // TODO
-            stylingOptions: null,
-            styleSheet: MarkdownStyleSheet(),
+           style: TextStyle(fontSize: 12), // TODO
+            // stylingOptions: null,
+            // styleSheet: MarkdownStyleSheet(),
           ),
         ),
       ),

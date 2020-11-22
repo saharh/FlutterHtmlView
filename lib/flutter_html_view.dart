@@ -29,11 +29,11 @@ class HtmlView extends StatelessWidget {
     if (scrollable) {
       return Markdown(
         data: _htmlMd(data, stylingOptions),
-        onTapLink: (url) {
-          if (url.startsWith("http://") || url.startsWith("https://")) {
-            _launchURL(url);
+        onTapLink: (String text, String href, String title) {
+          if (href.startsWith("http://") || href.startsWith("https://")) {
+            _launchURL(href);
           } else {
-            _launchOtherURL(url);
+            _launchOtherURL(href);
           }
         },
         padding: padding,
@@ -45,11 +45,11 @@ class HtmlView extends StatelessWidget {
         child: MarkdownBody(
           // Doesn't use a list view, hence no scrolling.
           data: _htmlMd(data, stylingOptions),
-          onTapLink: (url) {
-            if (url.startsWith("http://") || url.startsWith("https://")) {
-              _launchURL(url);
+          onTapLink: (String text, String href, String title) {
+            if (href.startsWith("http://") || href.startsWith("https://")) {
+              _launchURL(href);
             } else {
-              _launchOtherURL(url);
+              _launchOtherURL(href);
             }
           },
           styleSheet: styleSheet,
