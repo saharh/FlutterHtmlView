@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html_view/flutter_html_text.dart';
 
+import 'package:flutter_markdown/flutter_markdown.dart';
+
 void main() => runApp(new MyApp());
 
 class MyApp extends StatefulWidget {
@@ -47,10 +49,12 @@ class _MyAppState extends State<MyApp> {
           title: new Text('Plugin example app'),
         ),
         body: new Container(
-          child: new HtmlText(
+          child: new HtmlView(
+//          child: new HtmlText(
             data: html,
-            style: TextStyle(fontSize: 12),
-//            stylingOptions: null,
+//            style: TextStyle(fontSize: 12), // TODO
+            stylingOptions: null,
+            styleSheet: MarkdownStyleSheet(),
           ),
         ),
       ),

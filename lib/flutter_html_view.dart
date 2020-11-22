@@ -11,10 +11,17 @@ class HtmlView extends StatelessWidget {
   final EdgeInsets padding;
   Map<String, String> stylingOptions;
   BuildContext ctx;
+  MarkdownStyleSheet styleSheet;
 
   /// If [scrollable] is set to false then you must handle scrolling outside of this widget.
   /// This can be acheived by using a [SingleChildScrollView].
-  HtmlView({this.data, this.stylingOptions, this.onLaunchFail, this.scrollable = true, this.padding});
+  HtmlView(
+      {this.data,
+      this.stylingOptions,
+      this.onLaunchFail,
+      this.scrollable = true,
+      this.padding,
+      this.styleSheet = null});
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +37,7 @@ class HtmlView extends StatelessWidget {
           }
         },
         padding: padding,
+        styleSheet: styleSheet,
       );
     } else {
       return Container(
@@ -44,6 +52,7 @@ class HtmlView extends StatelessWidget {
               _launchOtherURL(url);
             }
           },
+          styleSheet: styleSheet,
         ),
       );
     }
