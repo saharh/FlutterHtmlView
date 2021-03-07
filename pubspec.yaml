@@ -18,6 +18,3 @@ dependencies:
   flutter_markdown: ^0.6.0
   html2md: ^1.0.0
 
-#dependency_overrides:
-#  image: ^3.0.1
-
